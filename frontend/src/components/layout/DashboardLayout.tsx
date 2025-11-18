@@ -23,6 +23,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
         <nav className="space-y-2">
           <a
+            href="/projects"
+            className="block px-4 py-2 rounded-md hover:bg-accent"
+          >
+            {t("nav.projects")}
+          </a>
+          <a
             href="/transcribe"
             className="block px-4 py-2 rounded-md hover:bg-accent"
           >

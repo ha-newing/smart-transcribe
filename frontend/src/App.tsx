@@ -7,6 +7,8 @@ import { api } from "../convex/_generated/api";
 import LoginPage from "./pages/auth/LoginPage";
 import DashboardLayout from "./components/layout/DashboardLayout";
 import TranscribePage from "./pages/transcribe/TranscribePage";
+import ProjectsPage from "./pages/projects/ProjectsPage";
+import ProjectDetailPage from "./pages/projects/ProjectDetailPage";
 
 function App() {
   const { isLoading } = useAuthActions();
@@ -30,9 +32,11 @@ function App() {
             currentUser ? (
               <DashboardLayout>
                 <Routes>
-                  <Route path="/" element={<Navigate to="/transcribe" replace />} />
+                  <Route path="/" element={<Navigate to="/projects" replace />} />
+                  <Route path="/projects" element={<ProjectsPage />} />
+                  <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
                   <Route path="/transcribe" element={<TranscribePage />} />
-                  <Route path="*" element={<Navigate to="/transcribe" replace />} />
+                  <Route path="*" element={<Navigate to="/projects" replace />} />
                 </Routes>
               </DashboardLayout>
             ) : (

@@ -1,6 +1,5 @@
 {
   "node": {
     "version": "22"
-  },
-  "functions": "convex/"
+  }
 }
