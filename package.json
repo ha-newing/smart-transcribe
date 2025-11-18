@@ -1,0 +1,14 @@
+{
+  "name": "smart-transcribe-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "convex:dev": "cd frontend && npx convex dev",
+    "convex:deploy": "cd frontend && npx convex deploy"
+  },
+  "workspaces": [
+    "frontend"
+  ]
+}

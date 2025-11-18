@@ -1,0 +1,38 @@
+{
+  "app": {
+    "title": "Smart Transcribe",
+    "logout": "Logout"
+  },
+  "auth": {
+    "login": "Login",
+    "loginTitle": "Welcome to Smart Transcribe",
+    "loginSubtitle": "Enter your email to get started",
+    "email": "Email",
+    "emailPlaceholder": "you@example.com",
+    "sendLink": "Send Magic Link",
+    "checkEmail": "Check your email for the magic link"
+  },
+  "nav": {
+    "transcribe": "Transcribe",
+    "projects": "Projects",
+    "settings": "Settings"
+  },
+  "transcribe": {
+    "title": "Transcribe",
+    "uploadFiles": "Upload Files",
+    "createProject": "Create Project",
+    "projectName": "Project Name",
+    "projectDescription": "Description",
+    "selectFiles": "Select audio or video files"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success"
+  }
+}

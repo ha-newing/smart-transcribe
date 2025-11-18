@@ -1,0 +1,38 @@
+{
+  "app": {
+    "title": "Phiên Âm Thông Minh",
+    "logout": "Đăng Xuất"
+  },
+  "auth": {
+    "login": "Đăng Nhập",
+    "loginTitle": "Chào mừng đến Smart Transcribe",
+    "loginSubtitle": "Nhập email để bắt đầu",
+    "email": "Email",
+    "emailPlaceholder": "you@example.com",
+    "sendLink": "Gửi Liên Kết Magic",
+    "checkEmail": "Kiểm tra email của bạn để nhận liên kết magic"
+  },
+  "nav": {
+    "transcribe": "Phiên Âm",
+    "projects": "Dự Án",
+    "settings": "Cài Đặt"
+  },
+  "transcribe": {
+    "title": "Phiên Âm",
+    "uploadFiles": "Tải Tệp Lên",
+    "createProject": "Tạo Dự Án",
+    "projectName": "Tên Dự Án",
+    "projectDescription": "Mô Tả",
+    "selectFiles": "Chọn tệp âm thanh hoặc video"
+  },
+  "common": {
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "edit": "Chỉnh Sửa",
+    "view": "Xem",
+    "loading": "Đang tải...",
+    "error": "Lỗi",
+    "success": "Thành Công"
+  }
+}
