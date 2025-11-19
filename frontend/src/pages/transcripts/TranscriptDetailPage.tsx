@@ -7,7 +7,7 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ArrowLeft, FileAudio, Users, Sparkles, RefreshCw } from "lucide-react";
+import { ArrowLeft, FileAudio, Users, Sparkles, RefreshCw, BookOpen } from "lucide-react";
 import { TRANSCRIPTION_STATUS } from "@/constants/enums";
 
 export default function TranscriptDetailPage() {
@@ -39,6 +39,11 @@ export default function TranscriptDetailPage() {
   const project = useQuery(
     api.projects.get,
     transcript ? { projectId: transcript.projectId } : "skip"
+  );
+
+  const chapters = useQuery(
+    api.chapters.listByTranscript,
+    transcript ? { transcriptId: transcript._id } : "skip"
   );
 
   const retryAIProcessing = useAction(api.transcription.retryAIProcessing);
@@ -147,6 +152,50 @@ export default function TranscriptDetailPage() {
               {transcript.speakers.map((speaker, idx) => (
                 <div key={idx} className="px-3 py-1 bg-muted rounded-full text-sm">
                   {speaker}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Chapters */}
+      {chapters && chapters.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BookOpen className="w-5 h-5" />
+              Chapters ({chapters.length})
+            </CardTitle>
+            <CardDescription>AI-generated sections from the transcript</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {chapters.map((chapter, idx) => (
+                <div key={chapter._id} className="border-l-4 border-primary pl-4">
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <h3 className="font-semibold text-lg">
+                      {idx + 1}. {chapter.title}
+                    </h3>
+                    {chapter.startTime !== undefined && chapter.endTime !== undefined && (
+                      <div className="text-xs text-muted-foreground whitespace-nowrap">
+                        {Math.floor(chapter.startTime / 60)}:{String(Math.floor(chapter.startTime % 60)).padStart(2, '0')}
+                        {' - '}
+                        {Math.floor(chapter.endTime / 60)}:{String(Math.floor(chapter.endTime % 60)).padStart(2, '0')}
+                      </div>
+                    )}
+                  </div>
+                  {chapter.speaker && (
+                    <div className="text-sm text-muted-foreground mb-2">
+                      Speaker: {chapter.speaker}
+                    </div>
+                  )}
+                  <div className="text-sm whitespace-pre-wrap bg-muted/50 p-3 rounded">
+                    {chapter.content}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    Type: {chapter.type}
+                  </div>
                 </div>
               ))}
             </div>

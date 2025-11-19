@@ -8,7 +8,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Upload, FileAudio, Trash2, Play, RotateCw, Eye, MoreVertical } from "lucide-react";
+import { ArrowLeft, Upload, FileAudio, Trash2, Play, RotateCw, Eye, MoreVertical, ArrowUp, ArrowDown } from "lucide-react";
 import { PROJECT_STATUS, FILE_STATUS } from "@/constants/enums";
 import FileUpload from "@/components/FileUpload";
 
@@ -38,12 +38,15 @@ export default function ProjectDetailPage() {
   const deleteProject = useMutation(api.projects.remove);
   const resetForRetranscription = useMutation(api.files.resetForRetranscription);
   const retryAIProcessing = useAction(api.transcription.retryAIProcessing);
+  const reorderFiles = useMutation(api.files.reorderFiles);
+  const recreateCombinedTranscript = useMutation(api.transcripts.recreateCombinedTranscript);
 
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [resetting, setResetting] = useState<Set<string>>(new Set());
   const [processingAI, setProcessingAI] = useState(false);
+  const [reordering, setReordering] = useState(false);
 
   const handleEdit = () => {
     if (project) {
@@ -128,6 +131,46 @@ export default function ProjectDetailPage() {
 
   const allFilesTranscribed = files && files.length > 0 && files.every((file) => file.status === FILE_STATUS.COMPLETED);
   const someFilesTranscribing = files && files.some((file) => file.status === FILE_STATUS.PROCESSING || file.status === FILE_STATUS.TRANSCRIBING);
+
+  const handleMoveFile = async (fileIndex: number, direction: "up" | "down") => {
+    if (!files || !projectId) return;
+
+    const newIndex = direction === "up" ? fileIndex - 1 : fileIndex + 1;
+    if (newIndex < 0 || newIndex >= files.length) return;
+
+    setReordering(true);
+    try {
+      // Swap the displayOrder values
+      const fileOrders = files.map((file, idx) => {
+        let order = file.displayOrder ?? idx;
+        if (idx === fileIndex) {
+          order = files[newIndex].displayOrder ?? newIndex;
+        } else if (idx === newIndex) {
+          order = files[fileIndex].displayOrder ?? fileIndex;
+        }
+        return { fileId: file._id, order };
+      });
+
+      await reorderFiles({
+        projectId: projectId as Id<"projects">,
+        fileOrders,
+      });
+
+      // If combined transcript exists, recreate it with new order
+      if (combinedTranscript) {
+        await recreateCombinedTranscript({
+          projectId: projectId as Id<"projects">,
+        });
+      }
+
+      toast.success("File order updated");
+    } catch (error) {
+      console.error("Failed to reorder files:", error);
+      toast.error("Failed to reorder files");
+    } finally {
+      setReordering(false);
+    }
+  };
 
   const getFileStatusColor = (status: string) => {
     switch (status) {
@@ -332,12 +375,37 @@ export default function ProjectDetailPage() {
             </div>
           ) : (
             <div className="space-y-2">
-              {files.map((file) => (
+              {files.map((file, idx) => (
                 <div
                   key={file._id}
                   className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent"
                 >
                   <div className="flex items-center gap-3 flex-1">
+                    {/* Reorder arrows - only show if multiple files */}
+                    {files.length > 1 && (
+                      <div className="flex flex-col gap-0.5">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-5 w-5 p-0"
+                          onClick={() => handleMoveFile(idx, "up")}
+                          disabled={idx === 0 || reordering}
+                          title="Move up"
+                        >
+                          <ArrowUp className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-5 w-5 p-0"
+                          onClick={() => handleMoveFile(idx, "down")}
+                          disabled={idx === files.length - 1 || reordering}
+                          title="Move down"
+                        >
+                          <ArrowDown className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    )}
                     <FileAudio className="w-5 h-5 text-muted-foreground" />
                     <div className="flex-1">
                       <div className="font-medium">{file.name}</div>
