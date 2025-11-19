@@ -240,7 +240,7 @@ export const updateStructured = internalMutation({
 });
 
 /**
- * Combine multiple transcripts
+ * Combine multiple transcripts and create a new combined transcript
  */
 export const combineTranscripts = mutation({
   args: {
@@ -290,7 +290,7 @@ export const combineTranscripts = mutation({
       .map((t) => t!.rawText)
       .join("\n\n---\n\n");
 
-    // Combine structured text
+    // Combine structured text if available
     const combinedStructuredText = transcripts
       .filter((t) => t !== null && t!.structuredText)
       .map((t) => t!.structuredText)
@@ -302,11 +302,23 @@ export const combineTranscripts = mutation({
       .flatMap((t) => t!.speakers!);
     const uniqueSpeakers = Array.from(new Set(allSpeakers));
 
-    return {
+    // Collect all file IDs
+    const fileIds = transcripts
+      .filter((t) => t !== null && t!.fileId)
+      .map((t) => t!.fileId!);
+
+    // Create new combined transcript
+    const combinedTranscriptId = await ctx.db.insert("transcripts", {
+      projectId: args.projectId,
+      fileIds,
+      isCombined: true,
+      title: args.title || "Combined Transcript",
       rawText: combinedRawText,
       structuredText: combinedStructuredText || undefined,
       speakers: uniqueSpeakers,
-      title: args.title || "Combined Transcript",
-    };
+      status: combinedStructuredText ? TRANSCRIPTION_STATUS.COMPLETED : TRANSCRIPTION_STATUS.PENDING,
+    });
+
+    return combinedTranscriptId;
   },
 });

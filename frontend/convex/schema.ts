@@ -72,13 +72,16 @@ const schema = defineSchema({
 
   // Transcripts - transcription results
   transcripts: defineTable({
-    fileId: v.id("files"),
+    fileId: v.optional(v.id("files")), // Single file (for individual transcripts)
+    fileIds: v.optional(v.array(v.id("files"))), // Multiple files (for combined transcripts)
     projectId: v.id("projects"),
     rawText: v.string(), // Raw transcription from Soniox
     structuredText: v.optional(v.string()), // AI-processed structured version
     status: v.string(), // TRANSCRIPTION_STATUS: PENDING, PROCESSING, COMPLETED, FAILED
     language: v.optional(v.string()),
     speakers: v.optional(v.array(v.string())), // List of identified speakers
+    title: v.optional(v.string()), // Title for combined transcripts
+    isCombined: v.optional(v.boolean()), // Flag for combined transcripts
     metadata: v.optional(v.object({
       model: v.optional(v.string()),
       confidence: v.optional(v.number()),

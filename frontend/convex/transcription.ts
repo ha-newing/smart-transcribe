@@ -388,7 +388,20 @@ Provide the cleaned, structured transcript:`;
     }
   );
 
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("Gemini API error:", response.status, errorText);
+    throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
+  }
+
   const data = await response.json();
+  console.log("Gemini API response:", JSON.stringify(data, null, 2));
+
+  if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+    console.error("Unexpected Gemini response structure:", data);
+    throw new Error("Gemini API returned unexpected response structure");
+  }
+
   return data.candidates[0].content.parts[0].text;
 }
 
@@ -440,13 +453,31 @@ JSON:`;
     }
   );
 
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("Gemini API error (chapters):", response.status, errorText);
+    return []; // Return empty array on error
+  }
+
   const data = await response.json();
+  console.log("Gemini chapters response:", JSON.stringify(data, null, 2));
+
+  if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+    console.error("Unexpected Gemini response structure (chapters):", data);
+    return []; // Return empty array on error
+  }
+
   const text = data.candidates[0].content.parts[0].text;
 
   // Extract JSON from response
   const jsonMatch = text.match(/\[[\s\S]*\]/);
   if (jsonMatch) {
-    return JSON.parse(jsonMatch[0]);
+    try {
+      return JSON.parse(jsonMatch[0]);
+    } catch (e) {
+      console.error("Failed to parse JSON from Gemini response:", e);
+      return [];
+    }
   }
 
   return [];
@@ -482,13 +513,31 @@ JSON:`;
     }
   );
 
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("Gemini API error (speakers):", response.status, errorText);
+    return []; // Return empty array on error
+  }
+
   const data = await response.json();
+  console.log("Gemini speakers response:", JSON.stringify(data, null, 2));
+
+  if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+    console.error("Unexpected Gemini response structure (speakers):", data);
+    return []; // Return empty array on error
+  }
+
   const text = data.candidates[0].content.parts[0].text;
 
   // Extract JSON from response
   const jsonMatch = text.match(/\[[\s\S]*\]/);
   if (jsonMatch) {
-    return JSON.parse(jsonMatch[0]);
+    try {
+      return JSON.parse(jsonMatch[0]);
+    } catch (e) {
+      console.error("Failed to parse JSON from Gemini response:", e);
+      return [];
+    }
   }
 
   return [];
