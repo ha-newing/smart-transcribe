@@ -1,17 +1,43 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuthActions } from "@convex-dev/auth/react";
+import { useMutation, useQuery } from "convex/react";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { api } from "../../../convex/_generated/api";
 
 export default function LoginPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { signIn } = useAuthActions();
+  const currentUser = useQuery(api.users.current);
+  const updateUserAfterAuth = useMutation(api.users.updateUserAfterAuth);
   const [step, setStep] = useState<"email" | "code">("email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
+  const [setupPending, setSetupPending] = useState(false);
+
+  // After sign-in, set up user with company and role
+  useEffect(() => {
+    if (currentUser && !setupPending && (!currentUser.role || !currentUser.companyId)) {
+      setSetupPending(true);
+      updateUserAfterAuth({
+        userId: currentUser._id,
+        email: currentUser.email || email
+      }).then(() => {
+        setSetupPending(false);
+        navigate("/");
+      }).catch((error) => {
+        console.error("Error setting up user:", error);
+        setSetupPending(false);
+      });
+    } else if (currentUser && currentUser.role && currentUser.companyId) {
+      navigate("/");
+    }
+  }, [currentUser, setupPending, updateUserAfterAuth, navigate, email]);
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,7 +62,7 @@ export default function LoginPage() {
     try {
       // Step 2: Verify code and sign in
       await signIn("sendgrid-otp", { email, code });
-      // Success! User will be redirected by App.tsx
+      // User setup will be handled by useEffect when currentUser updates
     } catch (error) {
       console.error("Error verifying code:", error);
       alert("Invalid or expired code. Please try again.");
