@@ -31,7 +31,7 @@ export default function TranscriptDetailPage() {
     transcript ? { projectId: transcript.projectId } : "skip"
   );
 
-  const processWithGemini = useAction(api.transcription.processWithGemini);
+  const retryAIProcessing = useAction(api.transcription.retryAIProcessing);
 
   const handleRetryAIProcessing = async () => {
     if (!transcript) return;
@@ -42,11 +42,11 @@ export default function TranscriptDetailPage() {
 
     setProcessingAI(true);
     try {
-      await processWithGemini({ transcriptId: transcript._id });
-      toast.success("AI processing completed! Refresh to see results.");
+      await retryAIProcessing({ transcriptId: transcript._id });
+      toast.success("AI processing started! The page will update automatically when complete.");
     } catch (error) {
       console.error("Failed to process with AI:", error);
-      toast.error("Failed to process with AI. Check console for details.");
+      toast.error("Failed to start AI processing. Check console for details.");
     } finally {
       setProcessingAI(false);
     }

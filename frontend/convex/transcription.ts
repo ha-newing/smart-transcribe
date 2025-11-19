@@ -276,7 +276,7 @@ export const transcribeFile = internalAction({
 });
 
 /**
- * Process transcript with Gemini to create structured document
+ * Process transcript with Gemini to create structured document (internal)
  */
 export const processWithGemini = internalAction({
   args: {
@@ -354,6 +354,32 @@ export const processWithGemini = internalAction({
 
       throw error;
     }
+  },
+});
+
+/**
+ * Retry AI processing for a transcript (public action)
+ */
+export const retryAIProcessing = action({
+  args: {
+    transcriptId: v.id("transcripts"),
+  },
+  handler: async (ctx, args) => {
+    // Verify user has access to this transcript
+    const transcript = await ctx.runQuery(api.transcripts.getTranscript, {
+      transcriptId: args.transcriptId,
+    });
+
+    if (!transcript) {
+      throw new Error("Transcript not found or access denied");
+    }
+
+    // Schedule the internal processing action
+    await ctx.scheduler.runAfter(0, internal.transcription.processWithGemini, {
+      transcriptId: args.transcriptId,
+    });
+
+    return { success: true, scheduled: true };
   },
 });
 
