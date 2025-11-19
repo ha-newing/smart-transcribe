@@ -10,7 +10,8 @@ The following environment variables must be set in Convex (use `npx convex env s
 - `SITE_URL` - Your frontend URL for auth redirects
   - Local dev: `http://localhost:5173`
   - Production: Your deployed frontend URL (e.g., `https://yourdomain.com`)
-- `AUTH_SENDGRID_KEY` - SendGrid API key for magic link emails
+- `JWT_PRIVATE_KEY` - Secret key for signing JWT tokens (generate with `openssl rand -base64 32`)
+- `AUTH_SENDGRID_KEY` - SendGrid API key for OTP emails
 - `AUTH_EMAIL_FROM` - From address for auth emails (e.g., `Your App <noreply@yourdomain.com>`)
 
 ### Required for Transcription
@@ -19,11 +20,17 @@ The following environment variables must be set in Convex (use `npx convex env s
 
 ### Setting Environment Variables
 ```bash
-# Local development
+# Local development - one-time setup
 npx convex env set SITE_URL http://localhost:5173
+npx convex env set JWT_PRIVATE_KEY "$(openssl rand -base64 32)"
+npx convex env set AUTH_SENDGRID_KEY "your-sendgrid-api-key"
+npx convex env set AUTH_EMAIL_FROM "Your App <noreply@yourdomain.com>"
 
 # Production (run with --prod flag)
 npx convex env set SITE_URL https://yourdomain.com --prod
+npx convex env set JWT_PRIVATE_KEY "$(openssl rand -base64 32)" --prod
+npx convex env set AUTH_SENDGRID_KEY "your-sendgrid-api-key" --prod
+npx convex env set AUTH_EMAIL_FROM "Your App <noreply@yourdomain.com>" --prod
 ```
 
 ## Convex Functions
