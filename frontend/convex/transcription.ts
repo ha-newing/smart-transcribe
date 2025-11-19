@@ -161,7 +161,7 @@ export const transcribeFile = internalAction({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "stt-async-preview",
+            model: "stt-async-v3",
             language_hints: ["en", "vi"],
             enable_language_identification: true,
             enable_speaker_diarization: true,
