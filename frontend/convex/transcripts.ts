@@ -14,7 +14,7 @@ export const get = internalQuery({
 });
 
 /**
- * Get transcript by file ID
+ * Get transcript by file ID (internal)
  */
 export const getByFileId = internalQuery({
   args: { fileId: v.id("files") },
@@ -23,6 +23,55 @@ export const getByFileId = internalQuery({
       .query("transcripts")
       .withIndex("by_file", (q) => q.eq("fileId", args.fileId))
       .first();
+  },
+});
+
+/**
+ * Get transcript by file ID (public with auth)
+ */
+export const getByFileIdPublic = query({
+  args: { fileId: v.id("files") },
+  handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
+
+    const transcript = await ctx.db
+      .query("transcripts")
+      .withIndex("by_file", (q) => q.eq("fileId", args.fileId))
+      .first();
+
+    if (!transcript) {
+      return null;
+    }
+
+    // Check project access
+    const project = await ctx.db.get(transcript.projectId);
+    if (!project) {
+      return null;
+    }
+
+    const user = await ctx.db.get(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const hasAccess =
+      project.createdBy === userId ||
+      project.sharedWithOrganization ||
+      (await ctx.db
+        .query("projectShares")
+        .withIndex("by_project_and_user", (q) =>
+          q.eq("projectId", transcript.projectId).eq("userId", userId)
+        )
+        .first()) !== null;
+
+    if (!hasAccess) {
+      throw new Error("Access denied");
+    }
+
+    return transcript;
   },
 });
 

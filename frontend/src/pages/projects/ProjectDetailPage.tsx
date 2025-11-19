@@ -8,7 +8,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Upload, FileAudio, Trash2, Play, RotateCw } from "lucide-react";
+import { ArrowLeft, Upload, FileAudio, Trash2, Play, RotateCw, Eye, MoreVertical } from "lucide-react";
 import { PROJECT_STATUS, FILE_STATUS } from "@/constants/enums";
 import FileUpload from "@/components/FileUpload";
 
@@ -300,10 +300,30 @@ export default function ProjectDetailPage() {
                         {transcribing.has(file._id) ? "Starting..." : "Transcribe"}
                       </Button>
                     )}
-                    {(file.status === FILE_STATUS.COMPLETED || file.status === FILE_STATUS.FAILED) && (
+                    {file.status === FILE_STATUS.COMPLETED && (
+                      <>
+                        <Button
+                          size="sm"
+                          onClick={() => navigate(`/transcripts/${file._id}`)}
+                        >
+                          <Eye className="w-4 h-4 mr-1" />
+                          View
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleRetry(file._id)}
+                          disabled={resetting.has(file._id) || transcribing.has(file._id)}
+                          title="Re-run transcription from scratch"
+                        >
+                          <RotateCw className="w-4 h-4 mr-1" />
+                          {resetting.has(file._id) || transcribing.has(file._id) ? "Retrying..." : "Retry"}
+                        </Button>
+                      </>
+                    )}
+                    {file.status === FILE_STATUS.FAILED && (
                       <Button
                         size="sm"
-                        variant={file.status === FILE_STATUS.FAILED ? "default" : "outline"}
                         onClick={() => handleRetry(file._id)}
                         disabled={resetting.has(file._id) || transcribing.has(file._id)}
                       >

@@ -10,6 +10,7 @@ import DashboardLayout from "./components/layout/DashboardLayout";
 import TranscribePage from "./pages/transcribe/TranscribePage";
 import ProjectsPage from "./pages/projects/ProjectsPage";
 import ProjectDetailPage from "./pages/projects/ProjectDetailPage";
+import TranscriptDetailPage from "./pages/transcripts/TranscriptDetailPage";
 
 function App() {
   const { isLoading } = useAuthActions();
@@ -38,6 +39,7 @@ function App() {
                     <Route path="/" element={<Navigate to="/projects" replace />} />
                     <Route path="/projects" element={<ProjectsPage />} />
                     <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
+                    <Route path="/transcripts/:fileId" element={<TranscriptDetailPage />} />
                     <Route path="/transcribe" element={<TranscribePage />} />
                     <Route path="*" element={<Navigate to="/projects" replace />} />
                   </Routes>
