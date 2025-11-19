@@ -1,0 +1,16 @@
+INSTRUCTIONS FOR SETTING JWT_PRIVATE_KEY IN CONVEX DASHBOARD
+=============================================================
+
+1. Go to: https://dashboard.convex.dev
+2. Select project: smart-transcribe (deployment: first-rabbit-248)
+3. Click: Settings → Environment Variables
+4. Find or create: JWT_PRIVATE_KEY
+5. Copy and paste the key below (everything from -----BEGIN to -----END)
+6. Click: Save
+
+IMPORTANT: Copy the ENTIRE key including the BEGIN and END markers.
+
+JWT_PRIVATE_KEY VALUE (single line with spaces):
+-------------------------------------------------
+
+-----BEGIN PRIVATE KEY----- MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDCDyPFmRm+trnE 1yj4VVOHPVGbo/ULud7OE39nLeJccNLyD35RUxMiBbQxjMIIG1AOeUZdI7ESyAzh XsLgQT2pengzFJHFYzNIl0LN3/qf1owoWhJuLNc6E4cQAvfM6xj8PYvU09MF3g+h xQGVI3jPuA7HUKyI6zAE9vssJsXtl4VxPtIV7X6KZfaNkuwG+OXx6lbWZZ32gwje gbN9kE1WTFkfg8BxdWsHxaL8PW71uhBsFsU4LLvzOnzlUwWyHwAoRls9HzEOGbAw zgV/xFs06NZH9xgc2K3s1/erN/mAo4STWM1kJy3+hDjom5fZ9QcohDxf+Xe+1rrY o44HUY39AgMBAAECggEAHO4pYNK1hBlVIguKi9UapgGF+kxL4qLj3LiK6IyuX6Yh SJ13MTQPmOWdSrrHjXJW8cVyMD37LsfcpbedGVYYlXzQ0RqqrbDfix2jw7H1uOEB FZ3x+/Na5clV/BTZMPdGiwo437JxlgEYNv96ACwg3WS87UlxY1selkrkwJ0KKmSH De8LPHPlu0xDO1lvax1UqwLJTSz0GTS2Ne/S4MJ/XG+ZizNXDP0Ao/wtQlQD5Q4F 2WtDRzUUbeoybRvhaMLS2d3DzPYRjiFN8qcdkRfZHPGVLAp08vjNvM2jw4IllN77 kyfCh/OV8qkkJ2JB7Se3ewc2S1ys1LIhejh8KyM8cQKBgQDu6y8thLp8GWQhWec5 RCkMSN3dNnxvbWUwP59WDeTK9z4OSACO7GSCZONu4ImIHx9YhwUQJj3K2EPZJRgc YNCeSrk2qXB1Sl4lYnHmrFcgdYEqAF7vHaWMydd0kGFab7oHwI3OKMlflCmV654b gY2Xq0HT33N8V+bElG9vs4RT0QKBgQDP7umPcs7Y/Bm/dt/aVnknTrtOZh9LeLZq fw+e5KU8vcOSRGQu79TKm+6IH/C1798uG0qPej9JYUXuWLReyLItGk3eA/stZbyT PNobX/aZ4tGBnp1GvpruADB3cOoMOsmnUcWqo8jsNQs0Ii3/RA+dsKmkZCxx3Vu2 j2d/Nml+bQKBgGo1pt1nWbd9WiPxYXb1tAHACtEiPaMTUJ5oSh7pQkJwMugKXiUr NWs6Cljp/HnEzByAuWF6fpHEHjVT5ioHZ/ZWZYvFOzcI/l1ELDpNdtX5JphTXeCS n1u9BsjMvlqDvIFhuihhvVN9/BanjbvQle9MtJDJjv9B3FabXgacGUFhAoGAGMQ+ MYXdOV8duf5wv1LZb2MjUD09sQGZyKmFtMlLHScFKmDXBfgvAkr8aF5Vj3YYwScj BF/tNdJOQAt0wG1rO5AMgks7GbcqdOckm2oct0ua5LN9zDVbwslm/HMIjZha+ID2 6FJF1kyjHvyLOgJjUcb/DcOYv588E0yVaUOT4SkCgYARj3u1fn+vl955rH3//pRU LuPGzIXfwh+gM0tpIO9H9u1S9XZI5O/Ae1NwcspbTJBeDD+TDInAH+XcdJH/wluV OM2lmNJgNPxYi/P+v6jUnb+SlB99u9Rd3pLHoGbXkXEIjMvo9gP89KaULmsQZPhg HOA0+WXri9qExqSTQDTbfA== -----END PRIVATE KEY----- 
