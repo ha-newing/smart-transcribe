@@ -17,16 +17,22 @@ const schema = defineSchema({
   }).index("by_domain", ["domain"]),
 
   // Users - extends Convex Auth users table
+  // IMPORTANT: Must match authTables schema requirements
   users: defineTable({
-    email: v.string(),
+    // Standard Convex Auth fields (all optional per auth requirements)
     name: v.optional(v.string()),
+    image: v.optional(v.string()),
+    email: v.optional(v.string()),
     emailVerificationTime: v.optional(v.number()),
     phone: v.optional(v.string()),
     phoneVerificationTime: v.optional(v.number()),
     isAnonymous: v.optional(v.boolean()),
-    role: v.string(), // USER_ROLES: ADMIN, EDITOR, VIEWER
-    companyId: v.id("companies"),
-  }).index("by_email", ["email"])
+    // Custom fields for our app (optional to allow auth sign-up to work)
+    role: v.optional(v.string()), // USER_ROLES: ADMIN, EDITOR, VIEWER
+    companyId: v.optional(v.id("companies")),
+  })
+    .index("email", ["email"]) // Required by Convex Auth - must be named "email"
+    .index("phone", ["phone"]) // Required by Convex Auth - must be named "phone"
     .index("by_company", ["companyId"]),
 
   // Projects - containers for transcription work

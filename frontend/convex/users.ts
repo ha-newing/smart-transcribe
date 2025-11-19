@@ -136,13 +136,13 @@ export const listCompanyUsers = query({
       throw new Error("User not properly set up");
     }
 
-    if (currentUser.role !== USER_ROLES.ADMIN) {
+    if (!currentUser.role || currentUser.role !== USER_ROLES.ADMIN) {
       throw new Error("Only admins can view users");
     }
 
     const users = await ctx.db
       .query("users")
-      .withIndex("by_company", (q) => q.eq("companyId", currentUser.companyId))
+      .withIndex("by_company", (q) => q.eq("companyId", currentUser.companyId!))
       .collect();
 
     return users;
@@ -165,7 +165,7 @@ export const updateUserRole = mutation({
     }
 
     const currentUser = await ctx.db.get(currentUserId);
-    if (!currentUser || currentUser.role !== USER_ROLES.ADMIN) {
+    if (!currentUser || !currentUser.role || currentUser.role !== USER_ROLES.ADMIN) {
       throw new Error("Only admins can update roles");
     }
 
@@ -174,7 +174,7 @@ export const updateUserRole = mutation({
       throw new Error("User not found");
     }
 
-    if (targetUser.companyId !== currentUser.companyId) {
+    if (!targetUser.companyId || !currentUser.companyId || targetUser.companyId !== currentUser.companyId) {
       throw new Error("Cannot update users from other companies");
     }
 

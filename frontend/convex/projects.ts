@@ -29,7 +29,7 @@ export const list = query({
     // Get projects shared with organization
     const orgProjects = await ctx.db
       .query("projects")
-      .withIndex("by_company", (q) => q.eq("companyId", user.companyId))
+      .withIndex("by_company", (q) => q.eq("companyId", user.companyId!))
       .filter((q) => q.eq(q.field("sharedWithOrganization"), true))
       .collect();
 
@@ -120,7 +120,7 @@ export const create = mutation({
     }
 
     // Only ADMIN and EDITOR can create projects
-    if (user.role === USER_ROLES.VIEWER) {
+    if (!user.role || user.role === USER_ROLES.VIEWER) {
       throw new Error("Viewers cannot create projects");
     }
 
@@ -175,7 +175,7 @@ export const update = mutation({
 
     const hasEditAccess =
       isCreator ||
-      user.role === USER_ROLES.ADMIN ||
+      (user.role && user.role === USER_ROLES.ADMIN) ||
       (share && (share.permission === SHARE_PERMISSION.EDIT || share.permission === SHARE_PERMISSION.ADMIN));
 
     if (!hasEditAccess) {
@@ -217,7 +217,7 @@ export const remove = mutation({
     }
 
     // Only creator or admin can delete
-    if (project.createdBy !== userId && user.role !== USER_ROLES.ADMIN) {
+    if (project.createdBy !== userId && (!user.role || user.role !== USER_ROLES.ADMIN)) {
       throw new Error("Access denied");
     }
 
@@ -252,14 +252,14 @@ export const shareWithUser = mutation({
     }
 
     // Only creator or admin can share
-    if (project.createdBy !== userId && currentUser.role !== USER_ROLES.ADMIN) {
+    if (project.createdBy !== userId && (!currentUser.role || currentUser.role !== USER_ROLES.ADMIN)) {
       throw new Error("Access denied");
     }
 
     // Find user to share with
     const targetUser = await ctx.db
       .query("users")
-      .withIndex("by_email", (q) => q.eq("email", args.userEmail))
+      .withIndex("email", (q) => q.eq("email", args.userEmail))
       .first();
 
     if (!targetUser) {
