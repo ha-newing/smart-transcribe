@@ -63,18 +63,46 @@ jobs:
       - name: Set Convex Production Environment Variables
         run: |
           cd frontend
-          echo "Setting production environment variables in Convex..."
-          npx convex env set AUTH_SENDGRID_KEY "${{ secrets.SENDGRID_API_KEY }}" --prod
-          npx convex env set AUTH_EMAIL_FROM "${{ secrets.SENDGRID_FROM_NAME }} <${{ secrets.SENDGRID_FROM_EMAIL }}>" --prod
-          npx convex env set GEMINI_API_KEY "${{ secrets.GEMINI_API_KEY }}" --prod
-          npx convex env set SONIOX_API_KEY "${{ secrets.SONIOX_API_KEY }}" --prod
+          echo "Checking and setting production environment variables in Convex..."
+
+          # Get list of existing environment variables
+          ENV_LIST=$(npx convex env list 2>/dev/null || echo "")
+
+          # Only set variables if they don't already exist
+          if ! echo "$ENV_LIST" | grep -q "AUTH_SENDGRID_KEY"; then
+            echo "Setting AUTH_SENDGRID_KEY..."
+            npx convex env set AUTH_SENDGRID_KEY "${{ secrets.AUTH_SENDGRID_KEY }}"
+          else
+            echo "AUTH_SENDGRID_KEY already set"
+          fi
+
+          if ! echo "$ENV_LIST" | grep -q "AUTH_EMAIL_FROM"; then
+            echo "Setting AUTH_EMAIL_FROM..."
+            npx convex env set AUTH_EMAIL_FROM "${{ secrets.AUTH_EMAIL_FROM }}"
+          else
+            echo "AUTH_EMAIL_FROM already set"
+          fi
+
+          if ! echo "$ENV_LIST" | grep -q "GEMINI_API_KEY"; then
+            echo "Setting GEMINI_API_KEY..."
+            npx convex env set GEMINI_API_KEY "${{ secrets.GEMINI_API_KEY }}"
+          else
+            echo "GEMINI_API_KEY already set"
+          fi
+
+          if ! echo "$ENV_LIST" | grep -q "SONIOX_API_KEY"; then
+            echo "Setting SONIOX_API_KEY..."
+            npx convex env set SONIOX_API_KEY "${{ secrets.SONIOX_API_KEY }}"
+          else
+            echo "SONIOX_API_KEY already set"
+          fi
         env:
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
 
       - name: Deploy Convex Backend
         run: |
           cd frontend
-          npx convex deploy --cmd 'npm run build'
+          npx convex deploy --yes
         env:
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
 
