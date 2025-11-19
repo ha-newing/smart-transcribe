@@ -1,0 +1,4 @@
+# Exclude test files from Convex bundling
+test/
+**/*.test.ts
+**/*.spec.ts

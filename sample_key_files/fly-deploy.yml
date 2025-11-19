@@ -1,0 +1,57 @@
+name: Deploy to Fly.io + Convex
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy Full Stack
+    runs-on: ubuntu-latest
+    concurrency: deploy-group
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: cd frontend && npm ci
+
+      - name: Set Convex Production Environment Variables
+        run: |
+          cd frontend
+          echo "Setting production environment variables in Convex..."
+          npx convex env set AUTH_SENDGRID_KEY "${{ secrets.SENDGRID_API_KEY }}" --prod
+          npx convex env set AUTH_EMAIL_FROM "${{ secrets.SENDGRID_FROM_NAME }} <${{ secrets.SENDGRID_FROM_EMAIL }}>" --prod
+          npx convex env set CLAUDE_API_KEY "${{ secrets.CLAUDE_API_KEY }}" --prod
+          npx convex env set GEMINI_API_KEY "${{ secrets.GEMINI_API_KEY }}" --prod
+          npx convex env set SONIOX_API_KEY "${{ secrets.SONIOX_API_KEY }}" --prod
+          npx convex env set ELEVEN_LABS_KEY "${{ secrets.ELEVEN_LABS_KEY }}" --prod
+          npx convex env set AZURE_STORAGE_CONNECTION_STRING "${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}" --prod
+          npx convex env set POSTHOG_API_KEY "${{ secrets.POSTHOG_API_KEY }}" --prod
+          npx convex env set POSTHOG_HOST "${{ secrets.POSTHOG_HOST }}" --prod
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+
+      - name: Deploy Convex Backend
+        run: |
+          cd frontend
+          npx convex deploy --cmd 'npm run build'
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+
+      - name: Setup Flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy Frontend to Fly.io
+        run: flyctl deploy -a newing-insights --dockerfile Dockerfile --build-arg VITE_CONVEX_URL=${{ secrets.VITE_CONVEX_URL }} --wait-timeout 15m --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
