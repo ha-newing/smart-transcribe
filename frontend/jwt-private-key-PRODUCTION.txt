@@ -1,0 +1,19 @@
+INSTRUCTIONS FOR SETTING JWT_PRIVATE_KEY IN CONVEX DASHBOARD (PRODUCTION)
+=========================================================================
+
+⚠️  IMPORTANT: This is for PRODUCTION only! Never reuse dev keys in prod.
+
+1. Go to: https://dashboard.convex.dev
+2. Select project: smart-transcribe (deployment: first-rabbit-248)
+3. Click: Settings → Environment Variables
+4. Switch to: PRODUCTION tab (top right)
+5. Find or create: JWT_PRIVATE_KEY
+6. Copy and paste the key below (everything from -----BEGIN to -----END)
+7. Click: Save
+
+IMPORTANT: Copy the ENTIRE key including the BEGIN and END markers.
+
+JWT_PRIVATE_KEY VALUE FOR PRODUCTION (single line with spaces):
+----------------------------------------------------------------
+
+-----BEGIN PRIVATE KEY----- MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDwg0UqG5B+CQRZ PVBFnQI1nKUsAOZxCI0yGyDDy7qm4gt9Z6xw6fL8+rHCcJZp73lxRRuET34EMInQ nM/+pA++XOxJD/bZUW3dEQnJBdE4OrFH+LaYqyK0o3D1KWgs/ftS3TTn03i5/Aqu YPiTVt/VrQHeWgRXVDLYv/QJdqFOIiQii25ECHe41MoiSo9WuOFL8q/X7D4HStkn u6UMkRIV1K0iLTS34JcbhkFLEnm3swF6iwpBPZhJAvTcPNVRpeiPCHKnCZxDeZ78 bu+beujXvhIZuLJLngTK0T8mVkuWuJgP7wA7b/smIhVkNQYtCkzzzqCwDrI/h90N 9z095yfdAgMBAAECggEAGMYEtUoij4DhREnm/0ylYh1Q/B/ZnLH7TTpzHQfaoX7u HQw1PGo0n6846STMsXu7wBmUtIO1oLvZLjZAzGNcxchvhDUTQZ48GUW8gsrJGqgd A6NQN5iFGiMtqusJcnz0yrvDS8/CAzI9bWnKoO6VXr6TzzHpeY9QL3hSLDlecxwp CN4QSBq4ScFvg2HLI+BgpMQ6V1xozAU/VzYjr7a0Ne0c+Af2T62J65JoGubIRUyk Y9EGxR8IYdb1pEDT83xLxsa+fvT5KRQVJZFEiOw5z+RvI5gm+btFbY6705wfaQBx 670ZXh0rtXTJ/Wcko0/9z7xyAks4CCySQx0weFy6hwKBgQD9G3dwVerUSf1G5IvA n4U9IxxI3zJIzRhQ8UMKUeAB29AqKcXx3QOZZ+DgUdJcOyKjw6Z2p5Xj/9n8S0ZR 4ZvBgseY6EM702hmAwwQBzjPu4VhAhYQQ01lEvTvwkzBA/HYQCeNMRP9j60XwhEG qvnO/IKZZLQo+hFVXyqlSWFdrwKBgQDzQvR43toGi8TJk5d2Huu4I7kG1UcaDaeu jfq90E/eituAcWZRrXS8lWPSbYvD6LlVttbTfry2qSsdRIyMad4m2wJmW0QMqeQM LmfupXckxGHWUBKi3wa5gy3jG3RQJeeTHL5Jcx7YpVKsIRonzZVZ2sThUwFnj86v SVZ1ukPiMwKBgDn2MEPpaP10dCvn6pkR7tExWSjW9Az36rmehlu2pDXIwMLnDg11 L33R7A1yr1mvsR8Pju9dMVYlISZFlrTplWGbMVoy1jK9FwtFZ13ESZ5IsyKj96mB wBeFX9IIDMumu5tqFaSfuJQ4csseBggg31QnP0EhbqBzo8SJJprzUvjBAoGBAPM8 TarWWfcVpm1QcLAhdt0miwn0FCZO5Q261a8aLeJ9wcGKoh6lbAZs8eUkuA3qE/dK 3T+YiCW0vXGEa2yzJvh/IMUsGLz42xf7Bt0vAhT3cESUyC2nB9hS/H0LpJ/HZuhI Y1SaEYvasvF+H+MQw3eXMimDj/H3b1kB4bvRxbLVAoGBAJXT70co6Qb5g15ozC1C fM4VrerN9h1yhqMdQg1X+lSjm8ouQOFCoE2C9iiy5rXhje2yX1zI317ZsLzvz6I2 lVG2SGqLAGv9MLC9MXdhB49++EiQYigHQhCsIdq/9CIlFJbTODvDfre0z2HqFrMD sQTK2hjun8v2lRE15wkqrTLm -----END PRIVATE KEY----- 
