@@ -1,16 +1,20 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "convex/react";
+import { useQuery, useAction } from "convex/react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ArrowLeft, FileAudio, Users, Sparkles } from "lucide-react";
+import { ArrowLeft, FileAudio, Users, Sparkles, RefreshCw } from "lucide-react";
+import { TRANSCRIPTION_STATUS } from "@/constants/enums";
 
 export default function TranscriptDetailPage() {
   const { fileId } = useParams<{ fileId: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const [processingAI, setProcessingAI] = useState(false);
 
   const transcript = useQuery(
     api.transcripts.getByFileIdPublic,
@@ -26,6 +30,27 @@ export default function TranscriptDetailPage() {
     api.projects.get,
     transcript ? { projectId: transcript.projectId } : "skip"
   );
+
+  const processWithGemini = useAction(api.transcription.processWithGemini);
+
+  const handleRetryAIProcessing = async () => {
+    if (!transcript) return;
+
+    if (!confirm("This will re-run AI processing (Gemini) to generate structured text, chapters, and speakers. Continue?")) {
+      return;
+    }
+
+    setProcessingAI(true);
+    try {
+      await processWithGemini({ transcriptId: transcript._id });
+      toast.success("AI processing completed! Refresh to see results.");
+    } catch (error) {
+      console.error("Failed to process with AI:", error);
+      toast.error("Failed to process with AI. Check console for details.");
+    } finally {
+      setProcessingAI(false);
+    }
+  };
 
   if (transcript === undefined || file === undefined) {
     return (
@@ -58,6 +83,18 @@ export default function TranscriptDetailPage() {
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
         </Button>
+        <div className="flex gap-2">
+          {transcript && (!transcript.structuredText || transcript.status === TRANSCRIPTION_STATUS.FAILED) && (
+            <Button
+              onClick={handleRetryAIProcessing}
+              disabled={processingAI}
+              variant={transcript.status === TRANSCRIPTION_STATUS.FAILED ? "default" : "outline"}
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${processingAI ? 'animate-spin' : ''}`} />
+              {processingAI ? "Processing..." : "Retry AI Processing"}
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* File Info Card */}
