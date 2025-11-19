@@ -39,16 +39,16 @@ echo ""
 echo "  🔧 Setting VITE_CONVEX_URL..."
 gh secret set VITE_CONVEX_URL --body "https://nautical-guanaco-500.convex.cloud"
 
-# Set Convex Deploy Key (user needs to paste this manually)
+# Set Convex Deploy Key
 echo ""
 echo "  🔑 Setting CONVEX_DEPLOY_KEY..."
-echo "     ⚠️  You need to get this from the Convex Dashboard"
-echo "     1. Run: npx convex dashboard --prod"
-echo "     2. Go to Settings → CI/CD"
-echo "     3. Copy the Deploy Key"
-echo "     4. Paste it when prompted below"
-echo ""
-gh secret set CONVEX_DEPLOY_KEY
+if [ ! -z "$CONVEX_DEPLOY_KEY" ]; then
+    gh secret set CONVEX_DEPLOY_KEY --body "$CONVEX_DEPLOY_KEY"
+else
+    echo "     ⚠️  CONVEX_DEPLOY_KEY not found in .env.prod"
+    echo "     Please paste it manually:"
+    gh secret set CONVEX_DEPLOY_KEY
+fi
 
 # Set API Keys from .env.prod
 echo ""
