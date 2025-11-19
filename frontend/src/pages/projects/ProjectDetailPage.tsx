@@ -7,7 +7,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Upload, FileAudio, Trash2, Play } from "lucide-react";
+import { ArrowLeft, Upload, FileAudio, Trash2, Play, RotateCw } from "lucide-react";
 import { PROJECT_STATUS, FILE_STATUS } from "@/constants/enums";
 import FileUpload from "@/components/FileUpload";
 
@@ -31,11 +31,13 @@ export default function ProjectDetailPage() {
   const updateProject = useMutation(api.projects.update);
   const deleteProject = useMutation(api.projects.remove);
   const startTranscription = useAction(api.transcription.startTranscription);
+  const resetForRetranscription = useMutation(api.files.resetForRetranscription);
 
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [transcribing, setTranscribing] = useState<Set<string>>(new Set());
+  const [resetting, setResetting] = useState<Set<string>>(new Set());
 
   const handleEdit = () => {
     if (project) {
@@ -85,6 +87,35 @@ export default function ProjectDetailPage() {
       console.error("Failed to start transcription:", error);
       alert("Failed to start transcription. Please try again.");
     } finally {
+      setTranscribing((prev) => {
+        const next = new Set(prev);
+        next.delete(fileId);
+        return next;
+      });
+    }
+  };
+
+  const handleRetry = async (fileId: Id<"files">) => {
+    if (!confirm("This will restart the transcription process. Continue?")) {
+      return;
+    }
+
+    setResetting((prev) => new Set(prev).add(fileId));
+    try {
+      await resetForRetranscription({ fileId });
+      // Automatically start transcription after reset
+      setTranscribing((prev) => new Set(prev).add(fileId));
+      await startTranscription({ fileId });
+      alert("Transcription restarted! Check back soon for results.");
+    } catch (error) {
+      console.error("Failed to retry transcription:", error);
+      alert("Failed to retry transcription. Please try again.");
+    } finally {
+      setResetting((prev) => {
+        const next = new Set(prev);
+        next.delete(fileId);
+        return next;
+      });
       setTranscribing((prev) => {
         const next = new Set(prev);
         next.delete(fileId);
@@ -264,6 +295,17 @@ export default function ProjectDetailPage() {
                       >
                         <Play className="w-4 h-4 mr-1" />
                         {transcribing.has(file._id) ? "Starting..." : "Transcribe"}
+                      </Button>
+                    )}
+                    {(file.status === FILE_STATUS.COMPLETED || file.status === FILE_STATUS.FAILED) && (
+                      <Button
+                        size="sm"
+                        variant={file.status === FILE_STATUS.FAILED ? "default" : "outline"}
+                        onClick={() => handleRetry(file._id)}
+                        disabled={resetting.has(file._id) || transcribing.has(file._id)}
+                      >
+                        <RotateCw className="w-4 h-4 mr-1" />
+                        {resetting.has(file._id) || transcribing.has(file._id) ? "Retrying..." : "Retry"}
                       </Button>
                     )}
                     <span

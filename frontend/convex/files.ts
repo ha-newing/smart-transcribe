@@ -193,3 +193,66 @@ export const updateStatus = internalMutation({
     });
   },
 });
+
+/**
+ * Reset file to allow re-transcription
+ */
+export const resetForRetranscription = mutation({
+  args: {
+    fileId: v.id("files"),
+  },
+  handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
+
+    const file = await ctx.db.get(args.fileId);
+    if (!file) {
+      throw new Error("File not found");
+    }
+
+    // Check project access
+    const project = await ctx.db.get(file.projectId);
+    if (!project) {
+      throw new Error("Project not found");
+    }
+
+    const user = await ctx.db.get(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const hasAccess =
+      project.createdBy === userId ||
+      (await ctx.db
+        .query("projectShares")
+        .withIndex("by_project_and_user", (q) =>
+          q.eq("projectId", file.projectId).eq("userId", userId)
+        )
+        .first()) !== null;
+
+    if (!hasAccess) {
+      throw new Error("Access denied");
+    }
+
+    // Reset file status to UPLOADED so it can be transcribed again
+    await ctx.db.patch(args.fileId, {
+      status: FILE_STATUS.UPLOADED,
+    });
+
+    // Reset transcript status if exists
+    const transcript = await ctx.db
+      .query("transcripts")
+      .withIndex("by_file", (q) => q.eq("fileId", args.fileId))
+      .first();
+
+    if (transcript) {
+      await ctx.db.patch(transcript._id, {
+        status: "PENDING",
+      });
+    }
+
+    return { success: true };
+  },
+});
