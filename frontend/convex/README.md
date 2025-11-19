@@ -1,4 +1,32 @@
-# Welcome to your Convex functions directory!
+# Smart Transcribe - Convex Backend
+
+This directory contains all Convex backend functions, schema, and authentication configuration.
+
+## Environment Variables
+
+The following environment variables must be set in Convex (use `npx convex env set KEY value`):
+
+### Required for Authentication
+- `SITE_URL` - Your frontend URL for auth redirects
+  - Local dev: `http://localhost:5173`
+  - Production: Your deployed frontend URL (e.g., `https://yourdomain.com`)
+- `AUTH_SENDGRID_KEY` - SendGrid API key for magic link emails
+- `AUTH_EMAIL_FROM` - From address for auth emails (e.g., `Your App <noreply@yourdomain.com>`)
+
+### Required for Transcription
+- `SONIOX_API_KEY` - Soniox API key for audio transcription
+- `GEMINI_API_KEY` - Google Gemini API key for AI processing
+
+### Setting Environment Variables
+```bash
+# Local development
+npx convex env set SITE_URL http://localhost:5173
+
+# Production (run with --prod flag)
+npx convex env set SITE_URL https://yourdomain.com --prod
+```
+
+## Convex Functions
 
 Write your Convex functions here.
 See https://docs.convex.dev/functions for more.
