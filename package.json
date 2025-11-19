@@ -10,5 +10,8 @@
   },
   "workspaces": [
     "frontend"
-  ]
+  ],
+  "devDependencies": {
+    "@edge-runtime/vm": "^5.0.0"
+  }
 }

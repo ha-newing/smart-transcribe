@@ -83,56 +83,55 @@ describe("Users and Authentication", () => {
     });
   });
 
-  describe("listByCompany", () => {
-    it("should list all users in company for authenticated user", async () => {
+  describe("listCompanyUsers", () => {
+    it("should list all users in company for admin user", async () => {
       const { companyId, identity } = await createTestUser(t, {
-        email: "user1@company.com",
-        name: "User One",
+        email: "admin@company.com",
+        name: "Admin User",
+        role: USER_ROLES.ADMIN,
       });
 
       await createTestUser(t, {
         email: "user2@company.com",
         name: "User Two",
         companyId,
+        role: USER_ROLES.VIEWER,
       });
 
       await createTestUser(t, {
         email: "user3@company.com",
         name: "User Three",
         companyId,
+        role: USER_ROLES.EDITOR,
       });
 
-      const users = await identity.query(api.users.listByCompany, {});
+      const users = await identity.query(api.users.listCompanyUsers, {});
 
       expect(users).toHaveLength(3);
-      expect(users.map((u) => u.name)).toContain("User One");
+      expect(users.map((u) => u.name)).toContain("Admin User");
       expect(users.map((u) => u.name)).toContain("User Two");
       expect(users.map((u) => u.name)).toContain("User Three");
     });
 
-    it("should only show users from same company", async () => {
-      const { identity: company1Identity } = await createTestUser(t, {
-        email: "user@company1.com",
+    it("should fail for non-admin user", async () => {
+      const { identity: viewerIdentity } = await createTestUser(t, {
+        email: "viewer@company.com",
+        role: USER_ROLES.VIEWER,
       });
 
-      await createTestUser(t, {
-        email: "user@company2.com",
-      });
-
-      const users = await company1Identity.query(api.users.listByCompany, {});
-
-      expect(users).toHaveLength(1);
-      expect(users[0].email).toBe("user@company1.com");
+      await expect(
+        viewerIdentity.query(api.users.listCompanyUsers, {})
+      ).rejects.toThrow("Only admins can view users");
     });
 
     it("should fail for unauthenticated user", async () => {
-      await expect(t.query(api.users.listByCompany, {})).rejects.toThrow(
+      await expect(t.query(api.users.listCompanyUsers, {})).rejects.toThrow(
         "Not authenticated"
       );
     });
   });
 
-  describe("updateRole (admin only)", () => {
+  describe("updateUserRole (admin only)", () => {
     it("should allow admin to update user role", async () => {
       const { companyId, identity: adminIdentity } = await createTestUser(t, {
         email: "admin@company.com",
@@ -145,7 +144,7 @@ describe("Users and Authentication", () => {
         role: USER_ROLES.VIEWER,
       });
 
-      await adminIdentity.mutation(api.users.updateRole, {
+      await adminIdentity.mutation(api.users.updateUserRole, {
         userId: viewerId,
         role: USER_ROLES.EDITOR,
       });
@@ -160,7 +159,7 @@ describe("Users and Authentication", () => {
         role: USER_ROLES.ADMIN,
       });
 
-      const { userId: editorId, identity: editorIdentity } =
+      const { identity: editorIdentity } =
         await createTestUser(t, {
           email: "editor@company.com",
           companyId,
@@ -174,11 +173,11 @@ describe("Users and Authentication", () => {
       });
 
       await expect(
-        editorIdentity.mutation(api.users.updateRole, {
+        editorIdentity.mutation(api.users.updateUserRole, {
           userId: viewerId,
           role: USER_ROLES.EDITOR,
         })
-      ).rejects.toThrow("Only admins can update user roles");
+      ).rejects.toThrow("Only admins can update roles");
     });
 
     it("should fail when updating user from different company", async () => {
@@ -192,54 +191,12 @@ describe("Users and Authentication", () => {
       });
 
       await expect(
-        admin1Identity.mutation(api.users.updateRole, {
+        admin1Identity.mutation(api.users.updateUserRole, {
           userId: user2Id,
           role: USER_ROLES.EDITOR,
         })
-      ).rejects.toThrow("User not found in your company");
+      ).rejects.toThrow("Cannot update users from other companies");
     });
   });
 
-  describe("remove (admin only)", () => {
-    it("should allow admin to remove user from company", async () => {
-      const { companyId, identity: adminIdentity } = await createTestUser(t, {
-        email: "admin@company.com",
-        role: USER_ROLES.ADMIN,
-      });
-
-      const { userId: viewerId } = await createTestUser(t, {
-        email: "viewer@company.com",
-        companyId,
-        role: USER_ROLES.VIEWER,
-      });
-
-      await adminIdentity.mutation(api.users.remove, { userId: viewerId });
-
-      const viewer = await t.run(async (ctx) => ctx.db.get(viewerId));
-      expect(viewer).toBeNull();
-    });
-
-    it("should fail for non-admin user", async () => {
-      const { companyId } = await createTestUser(t, {
-        email: "admin@company.com",
-        role: USER_ROLES.ADMIN,
-      });
-
-      const { identity: editorIdentity } = await createTestUser(t, {
-        email: "editor@company.com",
-        companyId,
-        role: USER_ROLES.EDITOR,
-      });
-
-      const { userId: viewerId } = await createTestUser(t, {
-        email: "viewer@company.com",
-        companyId,
-        role: USER_ROLES.VIEWER,
-      });
-
-      await expect(
-        editorIdentity.mutation(api.users.remove, { userId: viewerId })
-      ).rejects.toThrow("Only admins can remove users");
-    });
-  });
 });

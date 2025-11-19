@@ -3,10 +3,15 @@ import path from "path";
 
 export default defineConfig({
   test: {
-    environment: "node",
+    environment: "edge-runtime",
     globals: true,
     setupFiles: ["./convex/test/setup.ts"],
     include: ["convex/**/*.test.ts"],
+    server: {
+      deps: {
+        inline: ["convex-test"],
+      },
+    },
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],

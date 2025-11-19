@@ -1,3 +1,5 @@
+/// <reference types="vite/client" />
+
 /**
  * Test helpers and utilities for Convex tests
  */
@@ -5,16 +7,15 @@
 import { convexTest } from "convex-test";
 import { expect } from "vitest";
 import schema from "../schema";
+import { modules } from "../test.setup";
 import type { Id } from "../_generated/dataModel";
 import { USER_ROLES, PROJECT_STATUS, FILE_STATUS, TRANSCRIPTION_STATUS } from "../../src/constants/enums";
 
 /**
  * Create test environment with schema
- * The modules parameter uses import.meta.glob to include all convex files
+ * Uses the modules from test.setup.ts
  */
 export const setupConvexTest = () => {
-  // Use import.meta.glob to include convex modules, excluding tests
-  const modules = import.meta.glob(["../**/*.{ts,js}", "!../**/*.test.{ts,js}", "!../test/**"], { eager: true });
   return convexTest(schema, modules);
 };
 
