@@ -116,16 +116,35 @@ export const listByProject = query({
 
 /**
  * Create transcript from Soniox tokens
+ * Based on Soniox v3 RT API response format
  */
 export const createFromSoniox = internalMutation({
   args: {
     fileId: v.id("files"),
     tokens: v.array(
       v.object({
+        // Required fields
         text: v.string(),
+
+        // Timing fields (in milliseconds)
+        start_ms: v.optional(v.number()),
+        end_ms: v.optional(v.number()),
+
+        // Confidence and status
+        confidence: v.optional(v.number()),
         is_final: v.optional(v.boolean()),
+
+        // Speaker diarization
         speaker: v.optional(v.string()),
+
+        // Language identification
         language: v.optional(v.string()),
+
+        // Translation status (null if not translating)
+        translation_status: v.optional(v.union(v.string(), v.null())),
+
+        // Audio event detection (null if not an audio event)
+        is_audio_event: v.optional(v.union(v.boolean(), v.null())),
       })
     ),
     isPartial: v.boolean(),

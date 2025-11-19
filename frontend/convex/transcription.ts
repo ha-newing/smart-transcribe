@@ -16,13 +16,24 @@ interface SonioxTranscriptionResponse {
   error_message?: string;
 }
 
+/**
+ * Soniox v3 RT API Token Response Format
+ * Based on: https://soniox.com/docs/stt/rt/real-time-transcription
+ */
+interface SonioxToken {
+  text: string;                      // Token text
+  start_ms?: number;                 // Start timestamp (milliseconds)
+  end_ms?: number;                   // End timestamp (milliseconds)
+  confidence?: number;               // Confidence score (0-1)
+  is_final?: boolean;                // Whether token is finalized
+  speaker?: string;                  // Speaker label (if diarization enabled)
+  language?: string;                 // Language (if identification enabled)
+  translation_status?: string | null; // Translation status (null if not translating)
+  is_audio_event?: boolean | null;   // Audio event detection (null if not an event)
+}
+
 interface SonioxTranscriptResponse {
-  tokens: Array<{
-    text: string;
-    is_final: boolean;
-    speaker?: string;
-    language?: string;
-  }>;
+  tokens: SonioxToken[];
 }
 
 /**
