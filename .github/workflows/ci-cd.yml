@@ -25,17 +25,17 @@ jobs:
           node-version: '22'
 
       - name: Install dependencies
-        run: cd frontend && npm ci
+        run: npm ci
 
       - name: Run linter
-        run: cd frontend && npm run lint
+        run: npm run lint --workspace=frontend
 
       - name: Run tests
-        run: cd frontend && npm test
+        run: npm test --workspace=frontend
         continue-on-error: true # Allow deployment even if tests fail (module loading issue)
 
       - name: Build frontend
-        run: cd frontend && npm run build
+        run: npm run build --workspace=frontend
 
   deploy:
     name: Deploy to Production
@@ -53,8 +53,8 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Install frontend dependencies
-        run: cd frontend && npm ci
+      - name: Install dependencies
+        run: npm ci
 
       - name: Set Convex Production Environment Variables
         run: |
