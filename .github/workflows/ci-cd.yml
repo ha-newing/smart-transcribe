@@ -109,6 +109,6 @@ jobs:
 
       - name: Deploy Frontend to Fly.io
         run: |
-          flyctl deploy --config frontend/fly.toml --build-arg VITE_CONVEX_URL=${{ secrets.VITE_CONVEX_URL }} --wait-timeout 15m --remote-only
+          flyctl deploy --config frontend/fly.toml --dockerfile Dockerfile.frontend --build-arg VITE_CONVEX_URL=${{ secrets.VITE_CONVEX_URL }} --wait-timeout 15m --remote-only
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

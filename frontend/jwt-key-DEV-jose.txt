@@ -1,0 +1,20 @@
+Generating JWT key pair using jose library...
+
+================================================================================
+JWT_PRIVATE_KEY for Convex Dashboard (DEV)
+================================================================================
+
+Copy this entire value (including BEGIN and END):
+
+-----BEGIN PRIVATE KEY----- MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCStZzIA9m4zKGw XBV+vnj/kKa6rzvrSGFVmT77/eRvaIzCtZFFCtp3vrjKgTUjCSo0Oivr2vkMcpUx y+P0iHwOPzW5TzLhkU+XCiQ6GRLz1r41Crxz7woEmU3lK1BlLCzSgvcjvKTQHY5M KuBtWiAWsJs6vrOqgMpxMYd7FwdwfZxMa+XW8o9Q6VEKHfoQfR7dnd8V2zwRCTT3 C+sGL4aB+Bxi6b2+4viGu598s0A8RsB4hMyZd2tt3VdmZrWlFWGbz7I3r0ZOI7RX j+gQHygWQIfnvK3bUtLXCZJ+IfXz+/PXKwrHCADQE8dLL5jQwYMn665CpdjkxLWi y0dC/fDPAgMBAAECggEAQYAsO3DcqBFUrzSttCS+SPwANKFAE1ABhQIiiMdWUhdP oS8HaNfrqkLQpjkBzF6vJRpDuc3OG6ycx9rML8Uv/fxitBWUFfmWm0y/1+CSAaQC 0BO3B9vVkTARAxxPjJwoduRaCu6Sdwh7G66Y/LmcUgUPiS7TcHCH8fm3D1G81I/T OpslR4dhbdmfpjURKrYWGneNtQQbm2ro0xK9B0wX5K3s8+8iItcFZ8Buo18959fG niZFUZzB+k3Wwxng6T9DGToYrik0/+fco5sTM0kH3xe08aHFdHMgNxSuix72T8uM x6KAtVZZ7Z3q6B2E0KEIiTuBqAZy7fHHS0ySWtp5wQKBgQDGjcidjy5ezOWcTiUV 7JNosuz1gZJ78LvP1cxf8pHauZSCRW9EvxL9lfkeFU21PhUBAzx2pkC4w7ERwWRT xCmjvaR8ySLA1Ds0+3VAU3Es5R0uJkwwKS1LqFBs5ckeZOX9LFG1Tc2eXOKGxs56 2mwqT6dz9KB6W7oKVD6rcM1GBwKBgQC9J+MDGouFi+6XBg3BLj5Tga2WEok1cFo8 liQABHPbcPyXwQ067t0r+z4go9qzSDKIAbdQhs+i9aCObeJTSuyLJ00ajV1IiZRB hoXBVXkA9x4Q2JVZszEASVASqebzW2ogE1Ht2Z3r2MnwAdagnuVQE2kNyxAWXnHU CI6otG+M+QKBgQCL0v0cN+Cn0hNAZ6emMNv+N0K4AW9u6LDaQ+2RA/nC1j3HH66j 8wskmaC9lrMKl5WjCOxjgeDCPM1Ne6tzcgkAzmQvnFVlBhBL12lSy3A/9Xj/Luko YVcMmJNKnOdtCBEOoU9JJmlOxIqh7w8pZPgXM9Dwz6zTfhUdgQZBJUbpsQKBgDm4 1UaaMB9lrz4447Oix/Q1q2ITb/l1uqOocX3r3esGFJ6+k6n7QFTui2vsdI2nJ3xn gag6K1ygNgmgsKMYRwzDxnymzOOY0Dwar/Bqg81um6cqYJEJ5JcgyCWZ4Vc7+yuk majKcq2I7z6lYPiM5I9GDRXfdJ5O3c+FePs0bKIJAoGABc/N2m5iZZ8Sb+F/yGZ5 RTgq/LaiipAtkT7Sl1m2jIo1bXRw78m+6WExLnz1doXlrp/Fg5JzxQyt9dBSukQ8 X1S7xPqqBVWpZxQwmsviGH/mm9lmlKaXrOqtU4PhJg/tm0EjKme5uz9k/oVCQ1w1 DOE5tNycWzwpABocpKEsoAE= -----END PRIVATE KEY-----
+
+================================================================================
+
+Instructions:
+1. Go to https://dashboard.convex.dev
+2. Select: smart-transcribe project
+3. Settings → Environment Variables → Development
+4. Edit JWT_PRIVATE_KEY
+5. Paste the key above
+6. Save
+================================================================================
