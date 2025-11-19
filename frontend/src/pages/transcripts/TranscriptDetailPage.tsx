@@ -11,19 +11,29 @@ import { ArrowLeft, FileAudio, Users, Sparkles, RefreshCw } from "lucide-react";
 import { TRANSCRIPTION_STATUS } from "@/constants/enums";
 
 export default function TranscriptDetailPage() {
-  const { fileId } = useParams<{ fileId: string }>();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [processingAI, setProcessingAI] = useState(false);
 
-  const transcript = useQuery(
-    api.transcripts.getByFileIdPublic,
-    fileId ? { fileId: fileId as Id<"files"> } : "skip"
+  // Try to get transcript by ID first (for combined transcripts)
+  const transcriptById = useQuery(
+    api.transcripts.getTranscript,
+    id ? { transcriptId: id as Id<"transcripts"> } : "skip"
   );
 
+  // If not found, try to get by fileId (for individual file transcripts)
+  const transcriptByFile = useQuery(
+    api.transcripts.getByFileIdPublic,
+    id && !transcriptById ? { fileId: id as Id<"files"> } : "skip"
+  );
+
+  const transcript = transcriptById || transcriptByFile;
+
+  // Get file info if this is an individual file transcript
   const file = useQuery(
     api.files.get,
-    fileId ? { fileId: fileId as Id<"files"> } : "skip"
+    transcript && transcript.fileId ? { fileId: transcript.fileId } : "skip"
   );
 
   const project = useQuery(
@@ -32,6 +42,8 @@ export default function TranscriptDetailPage() {
   );
 
   const retryAIProcessing = useAction(api.transcription.retryAIProcessing);
+
+  const isCombined = transcript?.isCombined === true;
 
   const handleRetryAIProcessing = async () => {
     if (!transcript) return;
@@ -97,17 +109,22 @@ export default function TranscriptDetailPage() {
         </div>
       </div>
 
-      {/* File Info Card */}
+      {/* File/Project Info Card */}
       <Card>
         <CardHeader>
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-3">
               <FileAudio className="w-6 h-6 text-muted-foreground mt-1" />
               <div>
-                <CardTitle className="text-2xl">{file.name}</CardTitle>
+                <CardTitle className="text-2xl">
+                  {isCombined ? transcript.title || "Combined Conference Transcript" : file?.name || "Transcript"}
+                </CardTitle>
                 {project && (
                   <CardDescription className="mt-1">
                     Project: {project.name}
+                    {isCombined && transcript.fileIds && (
+                      <> • {transcript.fileIds.length} files combined</>
+                    )}
                   </CardDescription>
                 )}
               </div>

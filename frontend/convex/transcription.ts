@@ -245,19 +245,12 @@ export const transcribeFile = internalAction({
           status: FILE_STATUS.COMPLETED,
         });
 
-        // Start AI processing
+        // Check if all files in project are transcribed, then auto-combine
         const file = await ctx.runQuery(internal.files.getInternal, { fileId: args.fileId });
         if (file) {
-          const transcript = await ctx.runQuery(internal.transcripts.getByFileId, {
-            fileId: args.fileId,
+          await ctx.scheduler.runAfter(0, internal.transcription.checkAndCombineProjectTranscripts, {
+            projectId: file.projectId,
           });
-
-          if (transcript) {
-            // Schedule Gemini processing
-            await ctx.scheduler.runAfter(0, internal.transcription.processWithGemini, {
-              transcriptId: transcript._id,
-            });
-          }
         }
       }
 
@@ -667,3 +660,91 @@ function chunkText(text: string, maxWords: number): string[] {
 
   return chunks;
 }
+
+/**
+ * Check if all files in a project are transcribed, then auto-combine them
+ */
+export const checkAndCombineProjectTranscripts = internalAction({
+  args: {
+    projectId: v.id("projects"),
+  },
+  handler: async (ctx, args) => {
+    // Get all files in the project ordered by displayOrder
+    const files = await ctx.runQuery(internal.files.listByProjectInternal, {
+      projectId: args.projectId,
+    });
+
+    if (files.length === 0) {
+      return { message: "No files in project" };
+    }
+
+    // Check if all files are completed
+    const allCompleted = files.every((file) => file.status === FILE_STATUS.COMPLETED);
+
+    if (!allCompleted) {
+      return { message: "Not all files transcribed yet", total: files.length, completed: files.filter(f => f.status === FILE_STATUS.COMPLETED).length };
+    }
+
+    // Check if combined transcript already exists
+    const existingCombined = await ctx.runQuery(internal.transcripts.getCombinedByProject, {
+      projectId: args.projectId,
+    });
+
+    if (existingCombined) {
+      return { message: "Combined transcript already exists", transcriptId: existingCombined._id };
+    }
+
+    // Get all transcripts ordered by file displayOrder
+    const transcripts = await Promise.all(
+      files.map(async (file) => {
+        const transcript = await ctx.runQuery(internal.transcripts.getByFileId, {
+          fileId: file._id,
+        });
+        return { file, transcript };
+      })
+    );
+
+    // Filter out files without transcripts
+    const validTranscripts = transcripts.filter(
+      (t) => t.transcript !== null
+    ) as Array<{ file: any; transcript: any }>;
+
+    if (validTranscripts.length === 0) {
+      return { message: "No transcripts found" };
+    }
+
+    // Sort by displayOrder (already ordered from query, but ensure)
+    validTranscripts.sort((a, b) => (a.file.displayOrder || 0) - (b.file.displayOrder || 0));
+
+    // Combine raw text with file markers
+    const combinedRawText = validTranscripts
+      .map((t) => `=== File: ${t.file.name} ===\n\n${t.transcript.rawText}`)
+      .join("\n\n---\n\n");
+
+    // Collect all file IDs
+    const fileIds = validTranscripts.map((t) => t.file._id);
+
+    // Combine speakers
+    const allSpeakers = validTranscripts
+      .flatMap((t) => t.transcript.speakers || []);
+    const uniqueSpeakers = Array.from(new Set(allSpeakers));
+
+    // Create combined transcript (raw only, no AI processing yet)
+    const combinedTranscriptId = await ctx.runMutation(internal.transcripts.createCombined, {
+      projectId: args.projectId,
+      fileIds,
+      title: `Combined Conference Transcript`,
+      rawText: combinedRawText,
+      speakers: uniqueSpeakers,
+      status: "PENDING", // Pending AI processing
+    });
+
+    console.log(`Created combined transcript ${combinedTranscriptId} for project ${args.projectId}`);
+
+    return {
+      message: "Combined transcript created",
+      transcriptId: combinedTranscriptId,
+      filesCount: validTranscripts.length,
+    };
+  },
+});

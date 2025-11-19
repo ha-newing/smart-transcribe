@@ -27,6 +27,45 @@ export const getByFileId = internalQuery({
 });
 
 /**
+ * Get combined transcript by project (internal)
+ */
+export const getCombinedByProject = internalQuery({
+  args: { projectId: v.id("projects") },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("transcripts")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .filter((q) => q.eq(q.field("isCombined"), true))
+      .first();
+  },
+});
+
+/**
+ * Create combined transcript (internal)
+ */
+export const createCombined = internalMutation({
+  args: {
+    projectId: v.id("projects"),
+    fileIds: v.array(v.id("files")),
+    title: v.string(),
+    rawText: v.string(),
+    speakers: v.array(v.string()),
+    status: v.string(),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.insert("transcripts", {
+      projectId: args.projectId,
+      fileIds: args.fileIds,
+      isCombined: true,
+      title: args.title,
+      rawText: args.rawText,
+      speakers: args.speakers,
+      status: args.status,
+    });
+  },
+});
+
+/**
  * Get transcript by file ID (public with auth)
  */
 export const getByFileIdPublic = query({
@@ -285,6 +324,105 @@ export const updateStructured = internalMutation({
       structuredText: args.structuredText,
       speakers: args.speakers,
     });
+  },
+});
+
+/**
+ * Get combined transcript for a project (public)
+ */
+export const getCombinedTranscript = query({
+  args: { projectId: v.id("projects") },
+  handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
+
+    // Check project access
+    const project = await ctx.db.get(args.projectId);
+    if (!project) {
+      return null;
+    }
+
+    const user = await ctx.db.get(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const hasAccess =
+      project.createdBy === userId ||
+      project.sharedWithOrganization ||
+      (await ctx.db
+        .query("projectShares")
+        .withIndex("by_project_and_user", (q) =>
+          q.eq("projectId", args.projectId).eq("userId", userId)
+        )
+        .first()) !== null;
+
+    if (!hasAccess) {
+      throw new Error("Access denied");
+    }
+
+    return await ctx.db
+      .query("transcripts")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .filter((q) => q.eq(q.field("isCombined"), true))
+      .first();
+  },
+});
+
+/**
+ * Delete combined transcript and trigger re-combine (after file reordering)
+ */
+export const recreateCombinedTranscript = mutation({
+  args: { projectId: v.id("projects") },
+  handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
+
+    // Check project access
+    const project = await ctx.db.get(args.projectId);
+    if (!project) {
+      throw new Error("Project not found");
+    }
+
+    const user = await ctx.db.get(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const hasAccess =
+      project.createdBy === userId ||
+      (await ctx.db
+        .query("projectShares")
+        .withIndex("by_project_and_user", (q) =>
+          q.eq("projectId", args.projectId).eq("userId", userId)
+        )
+        .first()) !== null;
+
+    if (!hasAccess) {
+      throw new Error("Access denied");
+    }
+
+    // Delete existing combined transcript
+    const existing = await ctx.db
+      .query("transcripts")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .filter((q) => q.eq(q.field("isCombined"), true))
+      .first();
+
+    if (existing) {
+      await ctx.db.delete(existing._id);
+    }
+
+    // Trigger re-combine
+    await ctx.scheduler.runAfter(0, api.transcription.checkAndCombineProjectTranscripts, {
+      projectId: args.projectId,
+    });
+
+    return { success: true };
   },
 });
 

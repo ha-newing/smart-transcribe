@@ -11,3 +11,6 @@ commit and set up github and fly ci cd, use gh and fly cli to init repo, secret 
   and other secrets 
 
   careful this is not the same as VITE CONVEX SITE URL (which is the convex backend url) the site url is the public url for redirection 
+
+    I think the flow is -> upload -> each file transcribe -> raw combine docs across file -> reorder if needed-> AI processing whole combine raw doc -> structured docs and Rag (this process
+   can be re-run when we have new files)

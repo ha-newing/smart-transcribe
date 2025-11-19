@@ -67,8 +67,10 @@ const schema = defineSchema({
     status: v.string(), // FILE_STATUS: UPLOADING, UPLOADED, PROCESSING, TRANSCRIBING, COMPLETED, FAILED
     duration: v.optional(v.number()), // seconds
     uploadedBy: v.id("users"),
+    displayOrder: v.optional(v.number()), // Order for combining transcripts (default: alphabetical by name)
   }).index("by_project", ["projectId"])
-    .index("by_status", ["status"]),
+    .index("by_status", ["status"])
+    .index("by_project_and_order", ["projectId", "displayOrder"]),
 
   // Transcripts - transcription results
   transcripts: defineTable({

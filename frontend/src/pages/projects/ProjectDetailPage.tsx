@@ -27,18 +27,23 @@ export default function ProjectDetailPage() {
     projectId ? { projectId: projectId as Id<"projects"> } : "skip"
   );
 
+  const combinedTranscript = useQuery(
+    api.transcripts.getCombinedTranscript,
+    projectId ? { projectId: projectId as Id<"projects"> } : "skip"
+  );
+
   const [showUpload, setShowUpload] = useState(false);
 
   const updateProject = useMutation(api.projects.update);
   const deleteProject = useMutation(api.projects.remove);
-  const startTranscription = useAction(api.transcription.startTranscription);
   const resetForRetranscription = useMutation(api.files.resetForRetranscription);
+  const retryAIProcessing = useAction(api.transcription.retryAIProcessing);
 
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [transcribing, setTranscribing] = useState<Set<string>>(new Set());
   const [resetting, setResetting] = useState<Set<string>>(new Set());
+  const [processingAI, setProcessingAI] = useState(false);
 
   const handleEdit = () => {
     if (project) {
@@ -81,35 +86,15 @@ export default function ProjectDetailPage() {
     }
   };
 
-  const handleTranscribe = async (fileId: Id<"files">) => {
-    setTranscribing((prev) => new Set(prev).add(fileId));
-    try {
-      await startTranscription({ fileId });
-      toast.success("Transcription started! Check back soon for results.");
-    } catch (error) {
-      console.error("Failed to start transcription:", error);
-      toast.error("Failed to start transcription. Please try again.");
-    } finally {
-      setTranscribing((prev) => {
-        const next = new Set(prev);
-        next.delete(fileId);
-        return next;
-      });
-    }
-  };
-
   const handleRetry = async (fileId: Id<"files">) => {
-    if (!confirm("This will restart the transcription process. Continue?")) {
+    if (!confirm("This will restart the transcription process for this file. Continue?")) {
       return;
     }
 
     setResetting((prev) => new Set(prev).add(fileId));
     try {
       await resetForRetranscription({ fileId });
-      // Automatically start transcription after reset
-      setTranscribing((prev) => new Set(prev).add(fileId));
-      await startTranscription({ fileId });
-      toast.success("Transcription restarted! Check back soon for results.");
+      toast.success("File reset successfully. Transcription will restart automatically.");
     } catch (error) {
       console.error("Failed to retry transcription:", error);
       toast.error("Failed to retry transcription. Please try again.");
@@ -119,13 +104,30 @@ export default function ProjectDetailPage() {
         next.delete(fileId);
         return next;
       });
-      setTranscribing((prev) => {
-        const next = new Set(prev);
-        next.delete(fileId);
-        return next;
-      });
     }
   };
+
+  const handleProcessAI = async () => {
+    if (!combinedTranscript) return;
+
+    if (!confirm("This will run AI processing (Gemini) on the combined transcript to generate structured text, chapters, and embeddings. Continue?")) {
+      return;
+    }
+
+    setProcessingAI(true);
+    try {
+      await retryAIProcessing({ transcriptId: combinedTranscript._id });
+      toast.success("AI processing started! The page will update automatically when complete.");
+    } catch (error) {
+      console.error("Failed to start AI processing:", error);
+      toast.error("Failed to start AI processing. Check console for details.");
+    } finally {
+      setProcessingAI(false);
+    }
+  };
+
+  const allFilesTranscribed = files && files.length > 0 && files.every((file) => file.status === FILE_STATUS.COMPLETED);
+  const someFilesTranscribing = files && files.some((file) => file.status === FILE_STATUS.PROCESSING || file.status === FILE_STATUS.TRANSCRIBING);
 
   const getFileStatusColor = (status: string) => {
     switch (status) {
@@ -235,6 +237,62 @@ export default function ProjectDetailPage() {
         </CardHeader>
       </Card>
 
+      {/* Combined Transcript Status */}
+      {files && files.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Combined Transcript</CardTitle>
+            <CardDescription>
+              {allFilesTranscribed
+                ? "All files transcribed. Combined transcript ready for AI processing."
+                : someFilesTranscribing
+                ? `Transcribing files... (${files.filter(f => f.status === FILE_STATUS.COMPLETED).length}/${files.length} complete)`
+                : "Upload files to get started"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-3">
+              {combinedTranscript ? (
+                <>
+                  <Button
+                    onClick={() => navigate(`/transcripts/${combinedTranscript._id}`)}
+                    disabled={!combinedTranscript.structuredText}
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    {combinedTranscript.structuredText ? "View Transcript" : "Processing..."}
+                  </Button>
+                  {(!combinedTranscript.structuredText || combinedTranscript.status === "FAILED") && (
+                    <Button
+                      variant={combinedTranscript.status === "FAILED" ? "default" : "outline"}
+                      onClick={handleProcessAI}
+                      disabled={processingAI}
+                    >
+                      <RotateCw className={`w-4 h-4 mr-2 ${processingAI ? 'animate-spin' : ''}`} />
+                      {processingAI
+                        ? "Processing..."
+                        : combinedTranscript.status === "FAILED"
+                        ? "Retry AI Processing"
+                        : "Start AI Processing"}
+                    </Button>
+                  )}
+                  <div className="text-sm text-muted-foreground">
+                    Status: {combinedTranscript.status}
+                  </div>
+                </>
+              ) : allFilesTranscribed ? (
+                <div className="text-sm text-muted-foreground">
+                  Creating combined transcript...
+                </div>
+              ) : (
+                <div className="text-sm text-muted-foreground">
+                  Waiting for all files to be transcribed
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -290,45 +348,16 @@ export default function ProjectDetailPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {file.status === FILE_STATUS.UPLOADED && (
-                      <Button
-                        size="sm"
-                        onClick={() => handleTranscribe(file._id)}
-                        disabled={transcribing.has(file._id)}
-                      >
-                        <Play className="w-4 h-4 mr-1" />
-                        {transcribing.has(file._id) ? "Starting..." : "Transcribe"}
-                      </Button>
-                    )}
-                    {file.status === FILE_STATUS.COMPLETED && (
-                      <>
-                        <Button
-                          size="sm"
-                          onClick={() => navigate(`/transcripts/${file._id}`)}
-                        >
-                          <Eye className="w-4 h-4 mr-1" />
-                          View
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleRetry(file._id)}
-                          disabled={resetting.has(file._id) || transcribing.has(file._id)}
-                          title="Re-run transcription from scratch"
-                        >
-                          <RotateCw className="w-4 h-4 mr-1" />
-                          {resetting.has(file._id) || transcribing.has(file._id) ? "Retrying..." : "Retry"}
-                        </Button>
-                      </>
-                    )}
                     {file.status === FILE_STATUS.FAILED && (
                       <Button
                         size="sm"
+                        variant="outline"
                         onClick={() => handleRetry(file._id)}
-                        disabled={resetting.has(file._id) || transcribing.has(file._id)}
+                        disabled={resetting.has(file._id)}
+                        title="Re-run transcription from scratch"
                       >
                         <RotateCw className="w-4 h-4 mr-1" />
-                        {resetting.has(file._id) || transcribing.has(file._id) ? "Retrying..." : "Retry"}
+                        {resetting.has(file._id) ? "Retrying..." : "Retry"}
                       </Button>
                     )}
                     <span

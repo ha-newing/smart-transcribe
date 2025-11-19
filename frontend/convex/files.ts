@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query, internalMutation, internalQuery } from "./_generated/server";
 import { auth } from "./auth";
+import { api } from "./_generated/api";
 import { FILE_STATUS } from "../src/constants/enums";
 
 /**
@@ -105,6 +106,14 @@ export const createFile = mutation({
       throw new Error("Access denied");
     }
 
+    // Get current file count for displayOrder
+    const existingFiles = await ctx.db
+      .query("files")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .collect();
+
+    const displayOrder = existingFiles.length;
+
     const fileId = await ctx.db.insert("files", {
       projectId: args.projectId,
       name: args.name,
@@ -113,6 +122,12 @@ export const createFile = mutation({
       storageId: args.storageId,
       status: FILE_STATUS.UPLOADED,
       uploadedBy: userId,
+      displayOrder,
+    });
+
+    // Auto-start transcription
+    await ctx.scheduler.runAfter(0, api.transcription.startTranscription, {
+      fileId,
     });
 
     return fileId;
@@ -175,6 +190,29 @@ export const getInternal = internalQuery({
 });
 
 /**
+ * List files by project (internal - no auth check, ordered by displayOrder)
+ */
+export const listByProjectInternal = internalQuery({
+  args: { projectId: v.id("projects") },
+  handler: async (ctx, args) => {
+    const files = await ctx.db
+      .query("files")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .collect();
+
+    // Sort by displayOrder, then by name as fallback
+    return files.sort((a, b) => {
+      const orderA = a.displayOrder ?? Number.MAX_VALUE;
+      const orderB = b.displayOrder ?? Number.MAX_VALUE;
+      if (orderA !== orderB) {
+        return orderA - orderB;
+      }
+      return a.name.localeCompare(b.name);
+    });
+  },
+});
+
+/**
  * Get file download URL
  */
 export const getDownloadUrl = query({
@@ -201,6 +239,111 @@ export const updateStatus = internalMutation({
     await ctx.db.patch(args.fileId, {
       status: args.status,
     });
+  },
+});
+
+/**
+ * Update file display order
+ */
+export const updateFileOrder = mutation({
+  args: {
+    fileId: v.id("files"),
+    newOrder: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
+
+    const file = await ctx.db.get(args.fileId);
+    if (!file) {
+      throw new Error("File not found");
+    }
+
+    // Check project access
+    const project = await ctx.db.get(file.projectId);
+    if (!project) {
+      throw new Error("Project not found");
+    }
+
+    const user = await ctx.db.get(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const hasAccess =
+      project.createdBy === userId ||
+      (await ctx.db
+        .query("projectShares")
+        .withIndex("by_project_and_user", (q) =>
+          q.eq("projectId", file.projectId).eq("userId", userId)
+        )
+        .first()) !== null;
+
+    if (!hasAccess) {
+      throw new Error("Access denied");
+    }
+
+    await ctx.db.patch(args.fileId, {
+      displayOrder: args.newOrder,
+    });
+
+    return { success: true };
+  },
+});
+
+/**
+ * Reorder multiple files at once
+ */
+export const reorderFiles = mutation({
+  args: {
+    projectId: v.id("projects"),
+    fileOrders: v.array(
+      v.object({
+        fileId: v.id("files"),
+        order: v.number(),
+      })
+    ),
+  },
+  handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
+
+    // Check project access
+    const project = await ctx.db.get(args.projectId);
+    if (!project) {
+      throw new Error("Project not found");
+    }
+
+    const user = await ctx.db.get(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const hasAccess =
+      project.createdBy === userId ||
+      (await ctx.db
+        .query("projectShares")
+        .withIndex("by_project_and_user", (q) =>
+          q.eq("projectId", args.projectId).eq("userId", userId)
+        )
+        .first()) !== null;
+
+    if (!hasAccess) {
+      throw new Error("Access denied");
+    }
+
+    // Update all file orders
+    await Promise.all(
+      args.fileOrders.map(({ fileId, order }) =>
+        ctx.db.patch(fileId, { displayOrder: order })
+      )
+    );
+
+    return { success: true };
   },
 });
 

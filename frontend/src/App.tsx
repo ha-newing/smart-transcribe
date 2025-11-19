@@ -39,7 +39,7 @@ function App() {
                     <Route path="/" element={<Navigate to="/projects" replace />} />
                     <Route path="/projects" element={<ProjectsPage />} />
                     <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
-                    <Route path="/transcripts/:fileId" element={<TranscriptDetailPage />} />
+                    <Route path="/transcripts/:id" element={<TranscriptDetailPage />} />
                     <Route path="/transcribe" element={<TranscribePage />} />
                     <Route path="*" element={<Navigate to="/projects" replace />} />
                   </Routes>
