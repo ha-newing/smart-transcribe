@@ -9,3 +9,5 @@ commit and set up github and fly ci cd, use gh and fly cli to init repo, secret 
 
   ensure secrets are synced to convex and fly accordingly, remember JWT
   and other secrets 
+
+  careful this is not the same as VITE CONVEX SITE URL (which is the convex backend url) the site url is the public url for redirection 
