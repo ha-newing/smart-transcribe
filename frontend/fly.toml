@@ -4,7 +4,7 @@ app = "smart-transcribe"
 primary_region = "sjc" # San Jose, California
 
 [build]
-  dockerfile = "Dockerfile"
+  dockerfile = "Dockerfile.frontend"
 
 [env]
   PORT = "8080"
