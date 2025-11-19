@@ -3,6 +3,7 @@ import { useAuthActions } from "@convex-dev/auth/react";
 import { useMutation, useQuery } from "convex/react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,9 +48,10 @@ export default function LoginPage() {
       // Step 1: Request verification code
       await signIn("sendgrid-otp", { email });
       setStep("code");
+      toast.success("Verification code sent! Check your email.");
     } catch (error) {
       console.error("Error sending code:", error);
-      alert("Failed to send verification code. Please try again.");
+      toast.error("Failed to send verification code. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -63,9 +65,10 @@ export default function LoginPage() {
       // Step 2: Verify code and sign in
       await signIn("sendgrid-otp", { email, code });
       // User setup will be handled by useEffect when currentUser updates
+      toast.success("Verification successful! Logging you in...");
     } catch (error) {
       console.error("Error verifying code:", error);
-      alert("Invalid or expired code. Please try again.");
+      toast.error("Invalid or expired code. Please try again.");
       setCode("");
     } finally {
       setLoading(false);

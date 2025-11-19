@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { api } from "../../../convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,11 +39,13 @@ export default function ProjectsPage() {
       setSharedWithOrg(false);
       setShowCreateForm(false);
 
+      toast.success("Project created successfully!");
+
       // Navigate to the new project
       navigate(`/projects/${projectId}`);
     } catch (error) {
       console.error("Failed to create project:", error);
-      alert("Failed to create project. Please try again.");
+      toast.error("Failed to create project. Please try again.");
     } finally {
       setLoading(false);
     }

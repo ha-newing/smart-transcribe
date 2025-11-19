@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query, internalMutation } from "./_generated/server";
+import { mutation, query, internalMutation, internalQuery } from "./_generated/server";
 import { auth } from "./auth";
 import { FILE_STATUS } from "../src/constants/enums";
 
@@ -161,6 +161,16 @@ export const get = query({
     }
 
     return file;
+  },
+});
+
+/**
+ * Get file by ID (internal - no auth check)
+ */
+export const getInternal = internalQuery({
+  args: { fileId: v.id("files") },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.fileId);
   },
 });
 

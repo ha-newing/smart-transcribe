@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
+import { Toaster } from "sonner";
 
 // Pages
 import LoginPage from "./pages/auth/LoginPage";
@@ -23,29 +24,32 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route
-          path="/*"
-          element={
-            currentUser ? (
-              <DashboardLayout>
-                <Routes>
-                  <Route path="/" element={<Navigate to="/projects" replace />} />
-                  <Route path="/projects" element={<ProjectsPage />} />
-                  <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
-                  <Route path="/transcribe" element={<TranscribePage />} />
-                  <Route path="*" element={<Navigate to="/projects" replace />} />
-                </Routes>
-              </DashboardLayout>
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
-        />
-      </Routes>
-    </BrowserRouter>
+    <>
+      <Toaster position="top-right" richColors />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route
+            path="/*"
+            element={
+              currentUser ? (
+                <DashboardLayout>
+                  <Routes>
+                    <Route path="/" element={<Navigate to="/projects" replace />} />
+                    <Route path="/projects" element={<ProjectsPage />} />
+                    <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
+                    <Route path="/transcribe" element={<TranscribePage />} />
+                    <Route path="*" element={<Navigate to="/projects" replace />} />
+                  </Routes>
+                </DashboardLayout>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+        </Routes>
+      </BrowserRouter>
+    </>
   );
 }
 

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
@@ -57,9 +58,10 @@ export default function ProjectDetailPage() {
         description: description.trim() || undefined,
       });
       setEditing(false);
+      toast.success("Project updated successfully");
     } catch (error) {
       console.error("Failed to update project:", error);
-      alert("Failed to update project");
+      toast.error("Failed to update project");
     }
   };
 
@@ -71,10 +73,11 @@ export default function ProjectDetailPage() {
 
     try {
       await deleteProject({ projectId: projectId as Id<"projects"> });
+      toast.success("Project deleted successfully");
       navigate("/projects");
     } catch (error) {
       console.error("Failed to delete project:", error);
-      alert("Failed to delete project");
+      toast.error("Failed to delete project");
     }
   };
 
@@ -82,10 +85,10 @@ export default function ProjectDetailPage() {
     setTranscribing((prev) => new Set(prev).add(fileId));
     try {
       await startTranscription({ fileId });
-      alert("Transcription started! Check back soon for results.");
+      toast.success("Transcription started! Check back soon for results.");
     } catch (error) {
       console.error("Failed to start transcription:", error);
-      alert("Failed to start transcription. Please try again.");
+      toast.error("Failed to start transcription. Please try again.");
     } finally {
       setTranscribing((prev) => {
         const next = new Set(prev);
@@ -106,10 +109,10 @@ export default function ProjectDetailPage() {
       // Automatically start transcription after reset
       setTranscribing((prev) => new Set(prev).add(fileId));
       await startTranscription({ fileId });
-      alert("Transcription restarted! Check back soon for results.");
+      toast.success("Transcription restarted! Check back soon for results.");
     } catch (error) {
       console.error("Failed to retry transcription:", error);
-      alert("Failed to retry transcription. Please try again.");
+      toast.error("Failed to retry transcription. Please try again.");
     } finally {
       setResetting((prev) => {
         const next = new Set(prev);

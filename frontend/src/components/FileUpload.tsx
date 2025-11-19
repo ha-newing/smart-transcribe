@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { useMutation } from "convex/react";
+import { toast } from "sonner";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
@@ -110,7 +111,7 @@ export default function FileUpload({ projectId, onUploadComplete }: FileUploadPr
       Array.from(files).forEach((file) => {
         // Validate file type (audio/video)
         if (!file.type.startsWith("audio/") && !file.type.startsWith("video/")) {
-          alert(`${file.name} is not an audio or video file`);
+          toast.error(`${file.name} is not an audio or video file`);
           return;
         }
 

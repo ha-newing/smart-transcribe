@@ -44,7 +44,7 @@ export const startTranscription = action({
     fileId: v.id("files"),
   },
   handler: async (ctx, args) => {
-    const file = await ctx.runQuery(api.files.get, { fileId: args.fileId });
+    const file = await ctx.runQuery(internal.files.getInternal, { fileId: args.fileId });
     if (!file) {
       throw new Error("File not found");
     }
@@ -96,7 +96,7 @@ export const splitAndTranscribe = internalAction({
     fileUrl: v.string(),
   },
   handler: async (ctx, args) => {
-    const file = await ctx.runQuery(api.files.get, { fileId: args.fileId });
+    const file = await ctx.runQuery(internal.files.getInternal, { fileId: args.fileId });
     if (!file || !file.duration) {
       throw new Error("File not found or duration not set");
     }
@@ -246,7 +246,7 @@ export const transcribeFile = internalAction({
         });
 
         // Start AI processing
-        const file = await ctx.runQuery(api.files.get, { fileId: args.fileId });
+        const file = await ctx.runQuery(internal.files.getInternal, { fileId: args.fileId });
         if (file) {
           const transcript = await ctx.runQuery(internal.transcripts.getByFileId, {
             fileId: args.fileId,
